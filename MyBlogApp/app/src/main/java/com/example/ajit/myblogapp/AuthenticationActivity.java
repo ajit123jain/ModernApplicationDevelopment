@@ -11,6 +11,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
+import java.io.IOException;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class AuthenticationActivity extends AppCompatActivity {
     EditText username,password;
     ProgressDialog progressDialog;
@@ -41,7 +50,7 @@ public class AuthenticationActivity extends AppCompatActivity {
             }
         });
         progressDialog = new ProgressDialog(this);
-        progressDialog.setIndeterminate(false);
+        progressDialog.setIndeterminate(true);
         progressDialog.setMessage("Please Wait...");
 
 
@@ -59,10 +68,80 @@ public class AuthenticationActivity extends AppCompatActivity {
         return true;
     }
     private void performSignIn(){
+        showProgressDialog(true);
+        ApiManager.getApiInterface().login(new AuthenticationRequest(username.getText().toString().trim(),password.getText().toString().trim())).enqueue(new Callback<MessageResponse>() {
+            @Override
+            public void onResponse(Call<MessageResponse> call, Response<MessageResponse> response) {
+                showProgressDialog(false);
+                if(response.isSuccessful()){
+                    showAlert("Welcome",response.body().getMessage());
+
+                }
+                else
+                {
+                    try {
+                        String errorMessage = response.errorBody().string();
+                        try{
+                            ErrorResponse errorResponse = new Gson().fromJson(errorMessage,ErrorResponse.class);
+                            showAlert("Sign in Failed",errorResponse.getError());
+                        }
+                        catch (JsonSyntaxException jsonException){
+                      jsonException.printStackTrace();
+                            showAlert("Sign in failed ","Something went Wrong");
+                        }
+
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MessageResponse> call, Throwable t) {
+                showProgressDialog(false);
+                showAlert("Sign in failed ","Something went Wrong");
+            }
+        });
      //mock an apicall
-        new SignInTask().execute(username.getText().toString(),password.getText().toString());
+       // new SignInTask().execute(username.getText().toString(),password.getText().toString());
     }
     private void performRegistration(){
+        showProgressDialog(true);
+        ApiManager.getApiInterface().registration(new AuthenticationRequest(username.getText().toString().trim(),password.getText().toString().trim())).enqueue(new Callback<MessageResponse>() {
+            @Override
+            public void onResponse(Call<MessageResponse> call, Response<MessageResponse> response) {
+                showProgressDialog(false);
+                if(response.isSuccessful()){
+                    showAlert("Welcome",response.body().getMessage());
+
+                }
+                else
+                {
+                    try {
+                        String errorMessage = response.errorBody().string();
+                        try{
+                            ErrorResponse errorResponse = new Gson().fromJson(errorMessage,ErrorResponse.class);
+                            showAlert("Registartion Failed",errorResponse.getError());
+                        }
+                        catch (JsonSyntaxException jsonException){
+                            jsonException.printStackTrace();
+                            showAlert("Registartion failed ","Something went Wrong");
+                        }
+
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MessageResponse> call, Throwable t) {
+                showProgressDialog(false);
+                showAlert("Registartion ","Something went Wrong");
+            }
+        });
 
     }
     private void showProgressDialog(Boolean shouldShould){
