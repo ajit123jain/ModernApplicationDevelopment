@@ -1,5 +1,6 @@
 package com.example.ajit.myblogapp;
 
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
 import android.view.LayoutInflater;
@@ -13,9 +14,12 @@ import android.widget.TextView;
 
 public class ArticleItemViewHolder extends RecyclerView.ViewHolder {
     TextView articleName;
+    CardView cardView;
     public ArticleItemViewHolder(View itemView) {
         super(itemView);
         articleName = (TextView)itemView.findViewById(R.id.articleOne);
+        cardView = (CardView)itemView.findViewById(R.id.cardView);
+
     }
 }
 

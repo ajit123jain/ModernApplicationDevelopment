@@ -66,9 +66,15 @@ public class ArticleListActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(ArticleItemViewHolder holder, int position) {
+        public void onBindViewHolder(ArticleItemViewHolder holder, final int position) {
             //item nstore
             holder.articleName.setText(articleList.get(position).getHeading());
+            holder.cardView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(ArticleListActivity.this,"Article Clikced :"+articleList.get(position).getHeading(),Toast.LENGTH_LONG).show();
+                }
+            });
         }
 
         @Override
