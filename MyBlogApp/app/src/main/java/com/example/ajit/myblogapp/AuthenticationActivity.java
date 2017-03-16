@@ -2,10 +2,12 @@ package com.example.ajit.myblogapp;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -68,6 +70,7 @@ public class AuthenticationActivity extends AppCompatActivity {
         return true;
     }
     private void performSignIn(){
+        NavigateArtilcleListActivity();
         showProgressDialog(true);
         ApiManager.getApiInterface().login(new AuthenticationRequest(username.getText().toString().trim(),password.getText().toString().trim())).enqueue(new Callback<MessageResponse>() {
             @Override
@@ -123,10 +126,12 @@ public class AuthenticationActivity extends AppCompatActivity {
                         try{
                             ErrorResponse errorResponse = new Gson().fromJson(errorMessage,ErrorResponse.class);
                             showAlert("Registartion Failed",errorResponse.getError());
+                            Log.i("1","First try");
                         }
                         catch (JsonSyntaxException jsonException){
                             jsonException.printStackTrace();
                             showAlert("Registartion failed ","Something went Wrong");
+                            Log.i("2","Second try");
                         }
 
 
@@ -194,12 +199,16 @@ public class AuthenticationActivity extends AppCompatActivity {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            //Do something woth this
+            //Do something wrong this
             return username.contentEquals(mockUsername) && password.contentEquals(mockPassword);
 
 
 
 
         }
+    }
+    private void  NavigateArtilcleListActivity(){
+        Intent intent = new Intent(this,ArticleListActivity.class);
+        startActivity(intent);
     }
 }
