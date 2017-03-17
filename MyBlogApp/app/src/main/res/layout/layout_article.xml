@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/articleOne"
-        android:text="ArticleOne"
+        android:text="articleName"
         android:textStyle="bold"
         android:textColor="@color/colorPrimaryDark"
         android:padding="10dp"/>

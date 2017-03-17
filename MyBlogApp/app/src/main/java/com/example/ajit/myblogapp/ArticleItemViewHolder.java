@@ -13,13 +13,16 @@ import android.widget.TextView;
  */
 
 public class ArticleItemViewHolder extends RecyclerView.ViewHolder {
-    TextView articleName;
-    CardView cardView;
+
+    public TextView articleName;
+    public CardView cardView;
+
     public ArticleItemViewHolder(View itemView) {
         super(itemView);
-        articleName = (TextView)itemView.findViewById(R.id.articleOne);
-        cardView = (CardView)itemView.findViewById(R.id.cardView);
-
+        articleName = (TextView) itemView.findViewById(R.id.articleOne);
+        cardView = (CardView) itemView.findViewById(R.id.cardView);
     }
 }
+
+
 

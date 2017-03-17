@@ -1,5 +1,6 @@
 package com.example.ajit.myblogapp;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,193 +23,101 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class AuthenticationActivity extends AppCompatActivity {
-    EditText username,password;
-    ProgressDialog progressDialog;
+public class AuthenticationActivity extends BaseActivity {
 
+    EditText username, password;
+
+    public static void startActivity(Activity startingActivity) {
+        Intent intent = new Intent(startingActivity, AuthenticationActivity.class);
+        startingActivity.startActivity(intent);
+
+        //To clear the stack, so that the user cannot go back to the authentication activity on hardware back press
+        startingActivity.finish();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle("Sign In or Register");
         setContentView(R.layout.activity_authentication);
-        username = (EditText)findViewById(R.id.username);
-        password = (EditText)findViewById(R.id.userpassword);
-        Button signin= (Button)findViewById(R.id.button_signin);
-        Button register = (Button)findViewById(R.id.button_register);
-        signin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            if (isFormValid()){
 
-                performSignIn();
-            }
+        username = (EditText) findViewById(R.id.username);
+        password = (EditText) findViewById(R.id.password);
+
+        Button signInButton = (Button) findViewById(R.id.signInButton);
+        signInButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isFormValid()) {
+                    performSignIn();
+                }
             }
         });
-        register.setOnClickListener(new View.OnClickListener() {
+
+        Button registerButton = (Button) findViewById(R.id.registerButton);
+        registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-             if (isFormValid()){
-                 performRegistration();
-             }
+            public void onClick(View view) {
+                if (isFormValid()) {
+                    performRegistration();
+                }
             }
         });
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Please Wait...");
-
-
-
     }
-    private  boolean isFormValid(){
-        if(username.getText().toString().trim().isEmpty()){
-            Toast.makeText(getApplicationContext(),"Username can not be empty",Toast.LENGTH_LONG).show();
+
+    private Boolean isFormValid() {
+        if (username.getText().toString().trim().isEmpty()) {
+            Toast.makeText(this, "Username cannot be left empty", Toast.LENGTH_LONG).show();
             return false;
         }
-        if (password.getText().toString().trim().isEmpty()){
-            Toast.makeText(getApplicationContext(),"Username can not be empty",Toast.LENGTH_LONG).show();
+
+        if (password.getText().toString().trim().isEmpty()) {
+            Toast.makeText(this, "Password cannot be left empty", Toast.LENGTH_LONG).show();
             return false;
         }
+
         return true;
     }
-    private void performSignIn(){
-        NavigateArtilcleListActivity();
+
+    private void performSignIn() {
         showProgressDialog(true);
-        ApiManager.getApiInterface().login(new AuthenticationRequest(username.getText().toString().trim(),password.getText().toString().trim())).enqueue(new Callback<MessageResponse>() {
-            @Override
-            public void onResponse(Call<MessageResponse> call, Response<MessageResponse> response) {
-                showProgressDialog(false);
-                if(response.isSuccessful()){
-                    showAlert("Welcome",response.body().getMessage());
-
-                }
-                else
-                {
-                    try {
-                        String errorMessage = response.errorBody().string();
-                        try{
-                            ErrorResponse errorResponse = new Gson().fromJson(errorMessage,ErrorResponse.class);
-                            showAlert("Sign in Failed",errorResponse.getError());
-                        }
-                        catch (JsonSyntaxException jsonException){
-                      jsonException.printStackTrace();
-                            showAlert("Sign in failed ","Something went Wrong");
-                        }
-
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<MessageResponse> call, Throwable t) {
-                showProgressDialog(false);
-                showAlert("Sign in failed ","Something went Wrong");
-            }
-        });
-     //mock an apicall
-       // new SignInTask().execute(username.getText().toString(),password.getText().toString());
+        ApiManager.getApiInterface().login(new AuthenticationRequest(username.getText().toString().trim(), password.getText().toString().trim()))
+                .enqueue(new SignInResponseListener());
     }
-    private void performRegistration(){
-        showProgressDialog(true);
-        ApiManager.getApiInterface().registration(new AuthenticationRequest(username.getText().toString().trim(),password.getText().toString().trim())).enqueue(new Callback<MessageResponse>() {
-            @Override
-            public void onResponse(Call<MessageResponse> call, Response<MessageResponse> response) {
-                showProgressDialog(false);
-                if(response.isSuccessful()){
-                    showAlert("Welcome",response.body().getMessage());
 
-                }
-                else
-                {
-                    try {
-                        String errorMessage = response.errorBody().string();
-                        try{
-                            ErrorResponse errorResponse = new Gson().fromJson(errorMessage,ErrorResponse.class);
-                            showAlert("Registartion Failed",errorResponse.getError());
-                            Log.i("1","First try");
-                        }
-                        catch (JsonSyntaxException jsonException){
-                            jsonException.printStackTrace();
-                            showAlert("Registartion failed ","Something went Wrong");
-                            Log.i("2","Second try");
-                        }
-
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<MessageResponse> call, Throwable t) {
-                showProgressDialog(false);
-                showAlert("Registartion ","Something went Wrong");
-            }
-        });
-
-    }
-    private void showProgressDialog(Boolean shouldShould){
-         if(shouldShould){
-             progressDialog.show();
-         }
-        else {
-           progressDialog.dismiss();
-         }
-    }
-    private  void showAlert(String title,String message){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(title);
-        builder.setMessage(message);
-        builder.setNeutralButton("Dismiss", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-            dialog.dismiss();
-            }
-        });
-        builder.show();
-    }
-    class SignInTask extends AsyncTask<String,Void,Boolean>{
-        String mockUsername = "test";
-        String mockPassword = "password";
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            showProgressDialog(true);
-        }
+    private class SignInResponseListener extends CustomResponseListener<MessageResponse> {
 
         @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            super.onPostExecute(aBoolean);
+        public void onSuccessfulResponse(MessageResponse response) {
             showProgressDialog(false);
-            if(aBoolean){
-              showAlert("Welcome","You have successfully signed in");
-            }
-            else {
-                showAlert("Failed","Username / password Incorrect");
-            }
+            ArticleListActivity.startActivity(AuthenticationActivity.this);
         }
 
         @Override
-        protected Boolean doInBackground(String... params) {
-            String username = params[0];
-            String password = params[1];
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            //Do something wrong this
-            return username.contentEquals(mockUsername) && password.contentEquals(mockPassword);
-
-
-
-
+        public void onFailureResponse(ErrorResponse errorResponse) {
+            showProgressDialog(false);
+            showAlert("SignIn Failed", errorResponse.getError());
         }
     }
-    private void  NavigateArtilcleListActivity(){
-        Intent intent = new Intent(this,ArticleListActivity.class);
-        startActivity(intent);
+
+    private void performRegistration() {
+        showProgressDialog(true);
+        ApiManager.getApiInterface().registration(new AuthenticationRequest(username.getText().toString().trim(), password.getText().toString().trim()))
+                .enqueue(new RegistrationResponseListener());
     }
+
+    private class RegistrationResponseListener extends CustomResponseListener<MessageResponse> {
+
+        @Override
+        public void onSuccessfulResponse(MessageResponse response) {
+            showProgressDialog(false);
+            showAlert("Welcome", response.getMessage());
+        }
+
+        @Override
+        public void onFailureResponse(ErrorResponse errorResponse) {
+            showProgressDialog(false);
+            showAlert("Registration Failed", errorResponse.getError());
+        }
+    }
+
 }

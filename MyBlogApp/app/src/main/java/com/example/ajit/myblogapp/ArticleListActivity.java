@@ -1,11 +1,15 @@
 package com.example.ajit.myblogapp;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -17,74 +21,92 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ArticleListActivity extends AppCompatActivity {
-    RecyclerView recyclerView ;
+public class ArticleListActivity extends BaseActivity {
+
+    RecyclerView recyclerView;
     ArticleListAdapter articleListAdapter;
-    ProgressDialog progressDialog;
+
+    public static void startActivity(Activity startingActivity) {
+        Intent intent = new Intent(startingActivity, ArticleListActivity.class);
+        startingActivity.startActivity(intent);
+
+        //To clear the stack, so that the user cannot go back to the authentication activity on hardware back press
+        startingActivity.finish();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_list);
-        articleListAdapter= new  ArticleListAdapter();
-        recyclerView = (RecyclerView)findViewById(R.id.recylerview);
-        recyclerView.setAdapter(articleListAdapter);
-        //step_2 linear layout manager
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-         progressDialog= new ProgressDialog(this);
-        progressDialog.setMessage("Fetching Articles");
-        progressDialog.show();
 
-        ApiManager.getApiInterface().getArticles().enqueue(new Callback<List<Article>>() {
+        //setting activity title
+        setTitle("Article List");
+
+        articleListAdapter = new ArticleListAdapter(new ArticleListAdapter.Helper() {
             @Override
-            public void onResponse(Call<List<Article>> call, Response<List<Article>> response) {
-                progressDialog.dismiss();
-             if(response.isSuccessful()){
-
-               articleListAdapter.setData(response.body());
-             }
-                else {
-                 Toast.makeText(ArticleListActivity.this,"Failed ",Toast.LENGTH_LONG).show();
-             }
-            }
-
-            @Override
-            public void onFailure(Call<List<Article>> call, Throwable t) {
-
+            public void onArticleClicked(Article article) {
+                ArticleDetailActivity.startActivity(ArticleListActivity.this, article);
             }
         });
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
+        //Step 1 - create an adapter
+        recyclerView.setAdapter(articleListAdapter);
+        //Step 2 - set layout manager
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        showProgressDialog(true);
+        ApiManager.getApiInterface().getArticles()
+                .enqueue(new ArticleListResponseListener());
     }
-    public class ArticleListAdapter extends RecyclerView.Adapter<ArticleItemViewHolder>{
-        List<Article> articleList = new ArrayList<>();
+
+    private class ArticleListResponseListener extends CustomResponseListener<List<Article>> {
 
         @Override
-        public ArticleItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            //Infalting
-            View view= LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_article,parent,false);
-
-            return new ArticleItemViewHolder(view);
+        public void onSuccessfulResponse(List<Article> response) {
+            showProgressDialog(false);
+            articleListAdapter.setData(response);
         }
 
         @Override
-        public void onBindViewHolder(ArticleItemViewHolder holder, final int position) {
-            //item nstore
-            holder.articleName.setText(articleList.get(position).getHeading());
-            holder.cardView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(ArticleListActivity.this,"Article Clikced :"+articleList.get(position).getHeading(),Toast.LENGTH_LONG).show();
-                }
-            });
+        public void onFailureResponse(ErrorResponse errorResponse) {
+            showProgressDialog(false);
+            showAlert("Failed", errorResponse.getError());
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_article_list, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.action_logout:
+                //perform logout
+                showProgressDialog(true);
+                ApiManager.getApiInterface().logout()
+                        .enqueue(new LogoutResponseListener());
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    class LogoutResponseListener extends CustomResponseListener<Void> {
+
+        @Override
+        public void onSuccessfulResponse(Void response) {
+            showProgressDialog(false);
+            AuthenticationActivity.startActivity(ArticleListActivity.this);
         }
 
         @Override
-        public int getItemCount() {
-            return articleList.size();
-        }
-        public void setData(List<Article> data ){
-            this.articleList=data;
-            this.notifyDataSetChanged();
-
+        public void onFailureResponse(ErrorResponse errorResponse) {
+            showProgressDialog(false);
+            showAlert("Log out Failed",errorResponse.getError());
         }
     }
 }

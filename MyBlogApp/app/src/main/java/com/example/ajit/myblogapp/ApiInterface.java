@@ -20,4 +20,6 @@ public interface ApiInterface {
     Call<MessageResponse> registration(@Body  AuthenticationRequest body);
     @GET(NetworkURL.GET_ARTICLES)
     Call<List<Article>>getArticles();
+    @GET(NetworkURL.LOGOUT)
+    Call<Void>logout();
 }

@@ -11,18 +11,18 @@ android:orientation="vertical">
        />
     <EditText
         style="@style/Authentication_EditText"
-        android:id="@+id/userpassword"
+        android:id="@+id/password"
         android:inputType="textPassword"
         android:hint="@string/et_password_hint"
         />
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/button_signin"
+        android:id="@+id/signInButton"
         android:text="@string/btn_sign_in"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/button_register"
+        android:id="@+id/registerButton"
         android:text="@string/btn_register"/>
 </LinearLayout>
